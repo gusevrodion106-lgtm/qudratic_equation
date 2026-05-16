@@ -285,10 +285,12 @@ class Bigfloat:
         accuracy = len(x.number)
         for i in range(11):
             target_len = accuracy * (2 ** i)
-            two = Bigfloat([2], 0)          
-            x = x * (two - digit * x) 
-            x.remove_extra_digits(target_len) 
-        x.remove_extra_digits(target_len)  
+            two = Bigfloat([2], 0)
+            rounded_digit = deepcopy(digit)
+            rounded_digit.remove_extra_digits(target_len + 10)
+            x = x * (two - rounded_digit * x)
+            x.remove_extra_digits(target_len)
+        x.remove_extra_digits(target_len)
         return x
         
 
@@ -407,12 +409,16 @@ class Bigfloat:
         accuracy = len(x.number)
         for i in range(11):
             three = Bigfloat([3], 0)
-            x = x * (three - self * (x * x))
+            num = deepcopy(self)
+            num.remove_extra_digits(accuracy + 10)
+            x = x * (three - num * (x * x))
             x.divide_by_two()
             accuracy *= 2
-            x.remove_extra_digits(accuracy + 10)        
+            x.remove_extra_digits(accuracy + 10)
         x.remove_extra_digits(accuracy + 10)
-        answer = self * x
+        num = deepcopy(self)
+        num.remove_extra_digits(accuracy + 10)
+        answer = num * x
         return answer
 
 
