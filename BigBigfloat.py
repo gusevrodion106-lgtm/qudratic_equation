@@ -49,7 +49,7 @@ class Bigfloat:
     Требуется для арифметических операций, обработки переносов.
 
     """
-    __slots__ = ["number", "exp", "negative"]
+    __slots__ = ["number", "exp", "negative", "kind"]
 
     BASE = 5
     power_BASE = 10 ** BASE
@@ -58,13 +58,16 @@ class Bigfloat:
     def __init__(self,
                  number: list_of_int = None,
                  exp: int = 0,
-                 negative: bool = False):
+                 negative: bool = False,
+                 kind: str = "finite"):
         
         """Инициализирует объект, удаляет незначащие нули, приводит exp к значению, кратному BASE."""
         self.number = number if number is not None else []
         self.exp = exp
         self.negative = negative
-        self._make_exp_multiple_BASE()
+        self.kind = kind
+        if kind == "finite":
+            self._make_exp_multiple_BASE()
 
     
     def get_mantissa(self):
@@ -75,8 +78,22 @@ class Bigfloat:
     
     def is_negative(self):
         return self.negative
-        
+    def is_finite(self) -> bool:
+        return self.kind == "finite"
 
+    def is_nan(self) -> bool:
+        return self.kind == "nan"
+
+    def is_inf(self) -> bool:
+        return self.kind == "inf"
+
+    @classmethod
+    def make_inf(cls, negative: bool = False) -> Bigfloat:
+        return cls([0], 0, negative, "inf")
+
+    @classmethod
+    def make_nan(cls) -> Bigfloat:
+        return cls([0], 0, False, "nan")
 
     @classmethod
     def make_Bigfloat_from_int(self,
@@ -110,7 +127,8 @@ class Bigfloat:
             Bigfloat_value = value
         else:
             raise ValueError("некорректное сравнение")
-        return (self.negative == Bigfloat_value.negative and
+        return (self.kind == Bigfloat_value.kind and
+                self.negative == Bigfloat_value.negative and
                 self.number == Bigfloat_value.number and
                 self.exp == Bigfloat_value.exp)
 
@@ -248,7 +266,7 @@ class Bigfloat:
 
 
     def _is_zero(self) -> bool:
-        return False or all(d == 0 for d in self.number)
+        return self.kind == "finite" and all(d == 0 for d in self.number)
     
 
 
@@ -603,6 +621,10 @@ class Bigfloat:
         Если экспонента отрицательна и по модулю меньше длины числа, то ставим точку в самом числе.
 
         """
+        if self.is_nan():
+            return "nan"
+        if self.is_inf():
+            return "-inf" if self.negative else "inf"
         str_digit = ""
         for x in reversed(self.number):
             str_digit += str(x).zfill(self.BASE)
@@ -614,8 +636,12 @@ class Bigfloat:
             else:
                 point = len(str_digit) - abs(self.exp)
                 str_digit = str_digit[:point] + "." + str_digit[point:]
+        if str_digit == "" or str_digit == ".":
+            str_digit = "0"
         point_zero = 0
-        while str_digit[point_zero] == "0" and str_digit[point_zero + 1] != ".":
+        while (point_zero + 1 < len(str_digit) and
+               str_digit[point_zero] == "0" and
+               str_digit[point_zero + 1] != "."):
             point_zero += 1
         str_digit = str_digit[point_zero:]
         if self.negative:

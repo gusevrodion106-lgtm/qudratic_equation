@@ -520,6 +520,7 @@ class BenchmarkBigfloat(SupportFunctions):
         self.test_run_time_mul()
         self.test_run_time_div()
         self.test_run_time_sqrt()
+        self.test_run_time_solve()
 
     def test_run_time_add(self):
         a = self.generate_random_Bigfloat(From=10 ** 9999, To=10 ** 10000)
@@ -562,7 +563,19 @@ class BenchmarkBigfloat(SupportFunctions):
 
     
 
+
+    def test_run_time_solve(self):
+        a = self.generate_random_Bigfloat(From=10 ** 9999, To=10 ** 10000)
+        b = self.generate_random_Bigfloat(From=10 ** 9999, To=10 ** 10000)
+        c = self.generate_random_Bigfloat(From=10 ** 9999, To=10 ** 10000)
+        input_str = "{0} {1} {2}".format(str(a), str(b), str(c))
+        data = Data(input_str)
+        time1 = perf_counter()
+        answer = solve(data)
+        time2 = perf_counter()
+        print("время решения квадратного уравнения с 10000 знаков: {0}".format(time2 - time1))
+
 if __name__ == "__main__":
     a = BenchmarkBigfloat()
-    unittest.main()
+    # unittest.main()
     

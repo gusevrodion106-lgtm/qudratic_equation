@@ -1,8 +1,9 @@
 from __future__ import annotations
-from interpretator import Context, String
+from interpretator import Context, String, Number
 from BigBigfloat import Bigfloat
 from typing import Any
 from time import *
+import math
 
 
 class Messages:
@@ -101,6 +102,7 @@ class complex_Answer:
 
     
 
+
 def calculate_discriminant(a: Bigfloat,
                            b: Bigfloat,
                            c: Bigfloat) -> Bigfloat:
@@ -190,8 +192,94 @@ def calculate_answer_with_negative_discriminant(d: Bigfloat,
 
 
 
+def has_special(data: Data) -> bool:
+    return any(not x.is_finite() for x in (data.get_a(), data.get_b(), data.get_c()))
+
+
+def bf_to_float(bf: Bigfloat) -> float:
+    if bf.is_nan():
+        return math.nan
+    if bf.is_inf():
+        return -math.inf if bf.negative else math.inf
+    s = str(bf).strip().lower()
+    if 'e' in s:
+        base, exp = s.split('e')
+        if int(exp) > 308:
+            return math.inf if not bf.negative else -math.inf
+    if not s or s in {'.', '+', '-'}:
+        return math.nan
+    return float(s)
+
+
+def float_to_bf(x: float) -> Bigfloat:
+    if math.isnan(x):
+        return Bigfloat.make_nan()
+    if math.isinf(x):
+        return Bigfloat.make_inf(x < 0)
+    return Number(repr(x)).interpret()
+
+
+def special_solve(data: Data) -> Answer | complex_Answer:
+    a = bf_to_float(data.get_a())
+    b = bf_to_float(data.get_b())
+    c = bf_to_float(data.get_c())
+
+    if math.isnan(a) or math.isnan(b) or math.isnan(c):
+        nan = Bigfloat.make_nan()
+        answer = Answer(nan, nan)
+        return answer
+
+    if a == 0.0:
+        if b == 0.0:
+            if c == 0.0:
+                answer = Answer()
+                answer.set_message(Messages.INFINITE_ROOTS)
+                return answer
+            if math.isinf(c):
+                answer = Answer(Bigfloat.make_nan())
+                answer.set_message(Messages.EQUATION_HAS_ONLY_ONE_ROOT)
+                return answer
+            answer = Answer()
+            answer.set_message(Messages.NO_ROOTS)
+            return answer
+        if math.isinf(b) or math.isinf(c):
+            answer = Answer(Bigfloat.make_nan())
+            answer.set_message(Messages.EQUATION_HAS_ONLY_ONE_ROOT)
+            return answer
+        x = -c / b
+        if math.isnan(x) or math.isinf(x):
+            answer = Answer(Bigfloat.make_nan())
+            answer.set_message(Messages.EQUATION_HAS_ONLY_ONE_ROOT)
+            return answer
+        answer = Answer(float_to_bf(x))
+        answer.set_message(Messages.EQUATION_HAS_ONLY_ONE_ROOT)
+        return answer
+
+    d = b * b - 4 * a * c
+    if math.isnan(d):
+        nan = Bigfloat.make_nan()
+        answer = Answer(nan, nan)
+        return answer
+
+    if d < 0:
+        re = -b / (2 * a)
+        im = math.sqrt(-d) / (2 * a)
+        answer = complex_Answer(
+            (float_to_bf(re), float_to_bf(im)),
+            (float_to_bf(re), float_to_bf(-im))
+        )
+        answer.set_message(Messages.COMPLEX_ROOTS)
+        return answer
+
+    sqrt_d = math.sqrt(d)
+    x1 = (-b + sqrt_d) / (2 * a)
+    x2 = (-b - sqrt_d) / (2 * a)
+    return Answer(float_to_bf(x1), float_to_bf(x2))
+
 
 def solve(data: Data) -> Answer:
+    if has_special(data):
+        return special_solve(data)
     a = data.get_a()
     b = data.get_b()
     c = data.get_c()
@@ -238,5 +326,3 @@ if __name__ == "__main__":
     tim2 = time()
     output(answer)
     print(tim2 - time1)
-
-
