@@ -3,9 +3,7 @@ from BigBigfloat import Bigfloat
 from random import *
 from time import *
 from decimal import Decimal, getcontext
-from math import sqrt
-from copy import deepcopy
-from квадратка import Data, solve, Messages, Answer
+from квадратка import Data, solve
 getcontext().prec = 100000
 
 
@@ -560,9 +558,6 @@ class BenchmarkBigfloat(SupportFunctions):
         c = Bigfloat.sqrt(a)
         time2 = perf_counter()
         print("время вычисления корня числа с 10000 знаков: {0}".format(time2 - time1))
-
-    
-
 
     def test_run_time_solve(self):
         a = self.generate_random_Bigfloat(From=10 ** 9999, To=10 ** 10000)

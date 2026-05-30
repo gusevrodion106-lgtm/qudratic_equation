@@ -120,39 +120,28 @@ class Number(Interpret):
     def interpret(self) -> Bigfloat:
         if not self.number:
             raise ValueError(VALUE_ERROR)
-
         negative = Sign(self.number).interpret()
-
         core = self.number
         if core and core[0] in "+-":
             core = core[1:]
         if core and core[0] in "+-":
             raise ValueError(VALUE_ERROR)
-
         core_lower = core.lower()
         if core_lower in self.INF_NAMES:
             return Bigfloat.make_inf(negative)
         if core_lower in self.NAN_NAMES:
             return Bigfloat.make_nan()
-
         core = strip_underscores(core)
-
         mant, exp_part = self.split_exp(core)
-
         self.check_leading_zeros(mant)
-
         exp = Exponent(exp_part).interpret()
         dot = Point(mant).interpret()
-
         mant = self.remove_point(mant)
         if mant == "":
             raise ValueError(VALUE_ERROR)
-
         if Zero(mant).interpret():
             return Bigfloat.make_Bigfloat_from_int(0)
-
         mant = mant.lstrip("0")
-
         number = Bigfloat()
         number.negative = negative
         number.number = Digits(mant).interpret()
@@ -163,13 +152,10 @@ class Number(Interpret):
         idx = find_exp(text)
         if idx == -1:
             return text, None
-
         mant = text[:idx]
         exp = text[idx + 1:]
-
         if not exp:
             raise ValueError(VALUE_ERROR)
-
         return mant, exp
 
     def check_leading_zeros(self, text: str):
