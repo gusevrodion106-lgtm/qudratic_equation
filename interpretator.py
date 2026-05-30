@@ -126,6 +126,8 @@ class Number(Interpret):
         core = self.number
         if core and core[0] in "+-":
             core = core[1:]
+        if core and core[0] in "+-":
+            raise ValueError(VALUE_ERROR)
 
         core_lower = core.lower()
         if core_lower in self.INF_NAMES:
@@ -148,6 +150,8 @@ class Number(Interpret):
 
         if Zero(mant).interpret():
             return Bigfloat.make_Bigfloat_from_int(0)
+
+        mant = mant.lstrip("0")
 
         number = Bigfloat()
         number.negative = negative

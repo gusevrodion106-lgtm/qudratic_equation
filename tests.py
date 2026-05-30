@@ -577,5 +577,5 @@ class BenchmarkBigfloat(SupportFunctions):
 
 if __name__ == "__main__":
     a = BenchmarkBigfloat()
-    # unittest.main()
+    unittest.main()
     

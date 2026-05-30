@@ -320,7 +320,7 @@ def output(answer: Any) -> None:
 
 
 if __name__ == "__main__":
-    data = Data("3" * 10000 + " " + "3" * 10000 + " " + "3" * 10000)
+    data = Data(input())
     time1 = time()
     answer = solve(data)
     tim2 = time()
